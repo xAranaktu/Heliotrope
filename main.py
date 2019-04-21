@@ -53,10 +53,11 @@ async def on_message(message):
             else:
                 logger.exception("Loot error")
 
-        try:
-            await message.delete()
-        except Exception:
-            pass
+        #
+        # try:
+        #     await message.delete()
+        # except Exception:
+        #     pass
 
     if message.content.startswith('!monster'):
         try:
