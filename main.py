@@ -61,8 +61,11 @@ async def on_message(message):
 
     if message.content.startswith('!monster'):
         try:
-            msg = wiki_cmd.get_monster_loot(message.content)
-            await message.channel.send(msg)
+            monster = wiki_cmd.get_monster_info(message.content)
+            if isinstance(monster, str):
+                await message.channel.send(monster)
+            else:
+                await message.channel.send(embed=monster)
         except Exception:
             logger.exception("!monster error")
 

@@ -123,3 +123,5 @@ dmypy.json
 .pyre/
 
 data/loot.json
+data/monster_info.json
+start.bat

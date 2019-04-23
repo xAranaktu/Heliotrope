@@ -1,2 +1,5 @@
 discord.py==1.0.1
 environs
+beautifulsoup4
+lxml
+requests

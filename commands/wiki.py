@@ -1,17 +1,31 @@
+import discord
 import json
 import re
 import os
-import urllib.request
+from requests import get
+from bs4 import BeautifulSoup
 
 
 class WikiCommands:
     def __init__(self, listen_channel_id):
-        self.channel_id = listen_channel_id
-        self.lootjson_fullpath = os.path.join('data', 'loot.json')
-        self.drop_files_dir = os.path.join('data', 'drop_files')
-        self._load_drop_list()
+        self.BASE_URL = 'http://bloodstonewiki.pl/index.php/'
 
-    def get_monster_loot(self, message_content):
+        # ID kanału z którego zbieramy pastebiny
+        self.channel_id = listen_channel_id
+
+        # Pastebiny zapisujemy tutaj
+        self.drop_files_dir = os.path.join('data', 'drop_files')
+
+        # loot.json
+        self.loot_json = os.path.join('data', 'loot.json')
+
+        # monster_info.json
+        self.monster_info_json = os.path.join('data', 'monster_info.json')
+
+        # wczytanie info o potworach
+        self._load_monster_data()
+
+    def get_monster_info(self, message_content):
         monster_name = message_content.replace('!monster', '')
         if not monster_name or len(monster_name) <= 1:
             return "Nieprawidłowe użycie komendy.\nPodaj nazwę potwora, np.```!monster Rabbit```"
@@ -19,36 +33,122 @@ class WikiCommands:
         if monster_name[0] == ' ':
             monster_name = monster_name[1:]
 
-        for monster, desc in self.drop_list.items():
-            if monster.lower() != monster_name.lower():
-                continue
+        if monster_name not in self.monster_info_list:
+            monster_info = self._wiki_monster_info(monster_name)
+            if monster_info:
+                self.monster_info_list[monster_name] = monster_info
+        else:
+            monster_info = self.monster_info_list[monster_name]
 
-            readable = []
-            for itm_name, dropped_desc in desc['drop'].items():
-                if dropped_desc['min'] >= 1 and (dropped_desc['min'] == dropped_desc['max']):
-                    count = dropped_desc['min']
-                else:
-                    count = "{}-{}".format(dropped_desc['min'], dropped_desc['max'])
+        monster_loot = self.get_monster_loot(monster_name.lower())
+        if 'org_monster_name' in monster_loot:
+            embed_monster_name = monster_loot['org_monster_name']
+        else:
+            embed_monster_name = monster_info['monster_name'] if 'monster_name' in monster_info else monster_name
 
-                readable.append(
-                    "{} {} (szansa: {}, średnio: {})\n".format(
-                        count,
-                        itm_name,
-                        str((dropped_desc['times_droped'] / desc['killed']) * 100)[:4] + '%',
-                        str(dropped_desc['total'] / desc['killed'])[:4],
-                    )
-                )
-            readable = ''.join(readable)
-            if readable[-2:] == ', ':
-                readable = readable[:-2]
+        embed = discord.Embed(
+            title=embed_monster_name,
+            url=self.BASE_URL + monster_name.replace(' ', '_'),
+            color=4446036,
+        )
 
-            return "**{}**\nZabitych: **{}**\nLoot:\n```{}```".format(
-                monster,
-                desc['killed'],
-                readable or 'Brak'
+        embed.set_author(
+            name='Bloodstone Wiki', url=self.BASE_URL,
+            icon_url='http://bloodstonewiki.pl/resources/assets/wikiblood2.png?5dda8'
+        )
+
+        if 'gif' in monster_info:
+            embed.set_thumbnail(
+                url=monster_info['gif']
             )
 
-        return 'Niestety, nie mam informacji o {}'.format(monster_name)
+        if 'EXP' in monster_info:
+            embed.add_field(
+                name='Info',
+                value='\n**EXP**: {}\n**HP**: {}'.format(
+                    monster_info['EXP'],
+                    monster_info['HP']
+                ),
+                inline=True
+            )
+            embed.add_field(
+                name='Zachowanie',
+                value='\n**Zwarcie**: {}\n**Dystans**: {}\n**Specjalne**: {}'.format(
+                    monster_info['Zwarcie'],
+                    monster_info['Dystans'],
+                    monster_info['Specjalne']
+                ),
+                inline=True
+            )
+
+        embed.add_field(name='Loot', value=monster_loot['human_readable_str'])
+        return embed
+
+    def _wiki_monster_info(self, monster_name):
+        result = {}
+
+        r = get(self.BASE_URL + monster_name.replace(' ', '_'))
+        # Problemy z wiki
+        if r.status_code != 200:
+            return result
+
+        soup = BeautifulSoup(r.text, 'lxml')
+        main_content = soup.find(id="mw-content-text")
+
+        # Brak zawartości
+        if 'noarticletext' in main_content.div['class']:
+            return result
+
+        tbody = main_content.table.find('tbody')
+        for row in tbody.find_all('tr'):
+            cells = row.find_all('td')
+            if cells and len(cells) == 6:
+                result = {
+                    'gif': 'http://bloodstonewiki.pl' + main_content.img['src'],
+                    'monster_name': soup.h1.find(text=True).replace('\n', '') or monster_name,
+                    'EXP': cells[0].find(text=True).replace('\n', ''),
+                    'HP': cells[1].find(text=True).replace('\n', ''),
+                    'Zwarcie': cells[2].find(text=True).replace('\n', ''),
+                    'Dystans': cells[3].find(text=True).replace('\n', ''),
+                    'Specjalne': cells[4].find(text=True).replace('\n', ''),
+                }
+
+        return result
+
+    def get_monster_loot(self, monster_name):
+        if not monster_name in self.drop_list:
+            return {
+                'human_readable_str': '`Brak informacji`',
+            }
+
+        desc = self.drop_list[monster_name]
+
+        readable = []
+        for itm_name, dropped_desc in desc['drop'].items():
+            if dropped_desc['min'] >= 1 and (dropped_desc['min'] == dropped_desc['max']):
+                count = dropped_desc['min']
+            else:
+                count = "{}-{}".format(dropped_desc['min'], dropped_desc['max'])
+
+            readable.append(
+                "\n`{} {} (szansa: {}, średnio: {})`".format(
+                    count,
+                    itm_name,
+                    str((dropped_desc['times_droped'] / desc['killed']) * 100)[:4] + '%',
+                    str(dropped_desc['total'] / desc['killed'])[:4],
+                )
+            )
+        readable = ''.join(readable)
+        if readable[-2:] == ', ':
+            readable = readable[:-2]
+
+        return {
+            'human_readable_str': "\nZabitych: **{}**\n{}".format(
+                desc['killed'],
+                readable or '`Brak loota`'
+            ),
+            'org_monster_name': desc['org_name']
+        }
 
     def add_to_loot(self, message_content):
         # Get link from message conent
@@ -67,9 +167,9 @@ class WikiCommands:
 
             with open(fname, 'wb') as f:
                 # get request
-                response = urllib.request.urlopen('https://pastebin.com/raw/{}'.format(id))
+                response = get('https://pastebin.com/raw/{}'.format(id))
                 # write to file
-                f.write(response.read())
+                f.write(response.content)
 
             self.parse_loot_file(fname)
 
@@ -89,9 +189,11 @@ class WikiCommands:
                 if not match:
                     continue
 
-                monster_name = match[0][0]
+                monster_name_org = match[0][0]
+                monster_name = monster_name_org.lower()
                 if monster_name not in self.drop_list:
                     self.drop_list[monster_name] = {
+                        'org_name': monster_name_org,
                         'killed': 1,
                         'drop': {},
                         'no_drop': False,
@@ -144,13 +246,36 @@ class WikiCommands:
 
     def _update_loot_json(self):
         # Save in loot.json
-        with open(self.lootjson_fullpath, 'w+') as f_json:
+        with open(self.loot_json, 'w+') as f_json:
             json.dump(self.drop_list, f_json)
 
-    def _load_drop_list(self):
+    def _update_monster_info_json(self):
+        # Save in monster_info.json
+        with open(self.monster_info_json, 'w+') as f_json:
+            json.dump(self.monster_info_list, f_json)
+
+    def _load_monster_data(self):
         # Reload drop list from file
         try:
-            with open(self.lootjson_fullpath) as f_json:
+            with open(self.loot_json) as f_json:
                 self.drop_list = json.load(f_json)
+
+            # Remove
+            for m, d in self.drop_list.items():
+                if m.islower():
+                    continue
+
+                d['org_name'] = m
+                self.drop_list[m.lower()] = d
+                self.drop_list.pop(m, None)
+
+            self._update_loot_json()
         except Exception:
             self.drop_list = {}
+
+        # Reload monster info from file
+        try:
+            with open(self.monster_info_json) as f_json:
+                self.monster_info_list = json.load(f_json)
+        except Exception:
+            self.monster_info_list = {}
