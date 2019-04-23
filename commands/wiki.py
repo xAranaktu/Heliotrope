@@ -99,19 +99,21 @@ class WikiCommands:
         if 'noarticletext' in main_content.div['class']:
             return result
 
+        if main_content.img:
+            result['gif'] = 'http://bloodstonewiki.pl' + main_content.img['src']
+
         tbody = main_content.table.find('tbody')
         for row in tbody.find_all('tr'):
             cells = row.find_all('td')
             if cells and len(cells) == 6:
-                result = {
-                    'gif': 'http://bloodstonewiki.pl' + main_content.img['src'],
+                result.update({
                     'monster_name': soup.h1.find(text=True).replace('\n', '') or monster_name,
                     'EXP': cells[0].find(text=True).replace('\n', ''),
                     'HP': cells[1].find(text=True).replace('\n', ''),
                     'Zwarcie': cells[2].find(text=True).replace('\n', ''),
                     'Dystans': cells[3].find(text=True).replace('\n', ''),
                     'Specjalne': cells[4].find(text=True).replace('\n', ''),
-                }
+                })
 
         return result
 

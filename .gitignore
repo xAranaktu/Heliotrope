@@ -125,3 +125,4 @@ dmypy.json
 data/loot.json
 data/monster_info.json
 start.bat
+.idea/
