@@ -33,22 +33,22 @@ class WikiCommands:
         if monster_name[0] == ' ':
             monster_name = monster_name[1:]
 
+        monster_loot = self.get_monster_loot(monster_name.lower())
+        if 'org_monster_name' in monster_loot:
+            embed_monster_name = monster_loot['org_monster_name']
+        else:
+            embed_monster_name = monster_name
+
         if monster_name not in self.monster_info_list:
-            monster_info = self._wiki_monster_info(monster_name)
+            monster_info = self._wiki_monster_info(embed_monster_name)
             if monster_info:
                 self.monster_info_list[monster_name] = monster_info
         else:
             monster_info = self.monster_info_list[monster_name]
 
-        monster_loot = self.get_monster_loot(monster_name.lower())
-        if 'org_monster_name' in monster_loot:
-            embed_monster_name = monster_loot['org_monster_name']
-        else:
-            embed_monster_name = monster_info['monster_name'] if 'monster_name' in monster_info else monster_name
-
         embed = discord.Embed(
             title=embed_monster_name,
-            url=self.BASE_URL + monster_name.replace(' ', '_'),
+            url=self.BASE_URL + embed_monster_name.replace(' ', '_'),
             color=4446036,
         )
 
