@@ -7,11 +7,14 @@ from bs4 import BeautifulSoup
 
 
 class WikiCommands:
-    def __init__(self, listen_channel_id):
+    def __init__(self, listen_channel_id, monster_allow_ch_id):
         self.BASE_URL = 'http://bloodstonewiki.pl/index.php/'
 
         # ID kanału z którego zbieramy pastebiny
         self.channel_id = listen_channel_id
+
+        # ID kanał na którym dziala !monster
+        self.monster_allow_ch_id = monster_allow_ch_id
 
         # Pastebiny zapisujemy tutaj
         self.drop_files_dir = os.path.join('data', 'drop_files')

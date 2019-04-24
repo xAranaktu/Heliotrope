@@ -20,7 +20,10 @@ env.read_env()
 DEBUG = env.bool("DEBUG", False)
 TOKEN = env("DISCORD_BOT_SECRET")
 
-wiki_cmd = wiki.WikiCommands(listen_channel_id=env.int("DISCORD_LOOT_GRAB_CHANNEL"))
+wiki_cmd = wiki.WikiCommands(
+    listen_channel_id=env.int("DISCORD_LOOT_GRAB_CHANNEL"),
+    monster_allow_ch_id=env.int("DISCORD_WIKI_COMMANDS_ALLOW"),
+)
 
 client = discord.Client()
 
@@ -60,14 +63,19 @@ async def on_message(message):
         #     pass
 
     if message.content.startswith('!monster'):
-        try:
-            monster = wiki_cmd.get_monster_info(message.content)
-            if isinstance(monster, str):
-                await message.channel.send(monster)
-            else:
-                await message.channel.send(embed=monster)
-        except Exception:
-            logger.exception("!monster error")
+        if message.channel.id == wiki_cmd.monster_allow_ch_id:
+            try:
+                monster = wiki_cmd.get_monster_info(message.content)
+                if isinstance(monster, str):
+                    await message.channel.send(monster)
+                else:
+                    await message.channel.send(embed=monster)
+            except Exception:
+                logger.exception("!monster error")
+        else:
+            await message.author.send(
+                'Z komendy !monster można korzystać tylko na kanale <#{}>'.format(wiki_cmd.monster_allow_ch_id)
+            )
 
     # DEBUG
     if DEBUG and message.content.startswith('!killme'):
