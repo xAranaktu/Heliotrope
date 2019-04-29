@@ -50,59 +50,6 @@ def migrate():
     raise Exception
 
 
-
-
-# @client.event
-# async def on_message(message):
-#     # we do not want the bot to reply to itself
-#     if message.author == client.user:
-#         return
-#
-#     # DEBUG
-#     if DEBUG and message.content.startswith('!killme'):
-#         await client.logout()
-#
-#     # Wiki commands
-#     if (
-#             (message.channel.id == GRAB_LOOT_CHANNEL) and
-#             ('pastebin.com' in message.content)
-#     ):
-#         print('Add to loot')
-
-
-    #     try:
-    #         wiki_cmd.add_to_loot(message.content)
-    #         msg = 'Dzięki {0.author.mention}! Dane zostały zaktualizowane.'.format(message)
-    #         await message.channel.send(msg)
-    #     except Exception as e:
-    #         if str(e) == 'InvalidLink':
-    #             msg = '{0.author.mention} mordeczko, wkleiłeś niepoprawny link do pastebina :('.format(message)
-    #             await message.channel.send(msg)
-    #         else:
-    #             logger.exception("Loot error")
-    #
-    #     #
-    #     # try:
-    #     #     await message.delete()
-    #     # except Exception:
-    #     #     pass
-    #
-    # if message.content.startswith('!monster'):
-    #     if message.channel.id == wiki_cmd.monster_allow_ch_id:
-    #         try:
-    #             monster = wiki_cmd.get_monster_info(message.content)
-    #             if isinstance(monster, str):
-    #                 await message.channel.send(monster)
-    #             else:
-    #                 await message.channel.send(embed=monster)
-    #         except Exception:
-    #             logger.exception("!monster error")
-    #     else:
-    #         await message.author.send(
-    #             'Z komendy !monster można korzystać tylko na kanale <#{}>'.format(wiki_cmd.monster_allow_ch_id)
-    #         )
-
-
 @client.event
 async def on_ready():
     print('Logged in as')
@@ -113,7 +60,7 @@ async def on_ready():
     await client.change_presence(activity=discord.Game(name='BloodStone Polska'))
 
 if __name__ == '__main__':
-    migrate()
+    # migrate()
 
     for extension in extensions:
         try:
