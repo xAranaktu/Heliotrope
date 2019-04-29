@@ -3,3 +3,4 @@ environs
 beautifulsoup4
 lxml
 requests
+pymongo
