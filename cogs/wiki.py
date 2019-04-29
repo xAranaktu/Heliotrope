@@ -143,6 +143,11 @@ class Wikipedia(commands.Cog):
     @commands.command()
     async def monsterhelp(self, ctx, *, contains):
         if ctx.channel.id != self.WIKI_COMMANDS_ALLOW:
+            await ctx.message.author.send('Komenda {}{} jest dostępna tylko na kanale <#{}>'.format(
+                self.client.command_prefix,
+                ctx.command.name,
+                self.WIKI_COMMANDS_ALLOW
+            ))
             return
 
         if len(contains) < 2:
@@ -152,7 +157,7 @@ class Wikipedia(commands.Cog):
         monsters = self.monsters_col.find(
             {'lowered_name': pattern}
         )
-        if not monsters:
+        if not monsters.count():
             await ctx.send('Brak w bazie danych potworów które zawierają w nazwie **{}**'.format(contains))
             return
 
@@ -183,6 +188,11 @@ class Wikipedia(commands.Cog):
     @commands.command()
     async def monster(self, ctx, *, monster_name):
         if ctx.channel.id != self.WIKI_COMMANDS_ALLOW:
+            await ctx.message.author.send('Komenda {}{} jest dostępna tylko na kanale <#{}>'.format(
+                self.client.command_prefix,
+                ctx.command.name,
+                self.WIKI_COMMANDS_ALLOW
+            ))
             return
 
         if not monster_name or len(monster_name) <= 1:
@@ -251,6 +261,11 @@ class Wikipedia(commands.Cog):
     @commands.command()
     async def itemhelp(self, ctx, *, contains):
         if ctx.channel.id != self.WIKI_COMMANDS_ALLOW:
+            await ctx.message.author.send('Komenda {}{} jest dostępna tylko na kanale <#{}>'.format(
+                self.client.command_prefix,
+                ctx.command.name,
+                self.WIKI_COMMANDS_ALLOW
+            ))
             return
 
         if len(contains) < 2:
@@ -261,7 +276,7 @@ class Wikipedia(commands.Cog):
         items = self.items_col.find(
             {'lowered_name': pattern}
         )
-        if not items:
+        if not items.count():
             await ctx.send('Brak w bazie danych przedmiotów które zawierają w nazwie **{}**'.format(contains))
             return
 
@@ -292,6 +307,11 @@ class Wikipedia(commands.Cog):
     @commands.command()
     async def item(self, ctx, *, item_name):
         if ctx.channel.id != self.WIKI_COMMANDS_ALLOW:
+            await ctx.message.author.send('Komenda {}{} jest dostępna tylko na kanale <#{}>'.format(
+                self.client.command_prefix,
+                ctx.command.name,
+                self.WIKI_COMMANDS_ALLOW
+            ))
             return
 
         if not item_name or len(item_name) <= 1:
