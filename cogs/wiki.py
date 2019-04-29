@@ -142,6 +142,9 @@ class Wikipedia(commands.Cog):
 
     @commands.command()
     async def monsterhelp(self, ctx, *, contains):
+        if ctx.channel.id != self.WIKI_COMMANDS_ALLOW:
+            return
+
         if len(contains) < 2:
             await ctx.send('W celu wyszukiwania proszę o podanie min. 2 znaków')
             return
@@ -247,6 +250,9 @@ class Wikipedia(commands.Cog):
 
     @commands.command()
     async def itemhelp(self, ctx, *, contains):
+        if ctx.channel.id != self.WIKI_COMMANDS_ALLOW:
+            return
+
         if len(contains) < 2:
             await ctx.send('W celu wyszukiwania proszę o podanie min. 2 znaków')
             return
