@@ -10,8 +10,12 @@ def update_drop(item_desc, killed, times_dropped=None, total=None):
     if not total:
         total = item_desc['total']
 
-    drop_chance = (Decimal(times_dropped / killed) * 100).quantize(Decimal('.01'), rounding=ROUND_UP).normalize()
-    avg_drop = (Decimal(total / killed)).quantize(Decimal('.01'), rounding=ROUND_UP).normalize()
+    drop_chance = str(
+        Decimal((times_dropped / killed) * 100).quantize(Decimal('.01'), rounding=ROUND_UP)
+    ).rstrip('0').rstrip('.')
+    avg_drop = str(
+        (Decimal(total / killed)).quantize(Decimal('.01'), rounding=ROUND_UP).normalize()
+    ).rstrip('0').rstrip('.')
     item_desc.update({
         'drop_chance': str(drop_chance) + '%',
         'avg_drop': str(avg_drop),

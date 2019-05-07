@@ -32,6 +32,9 @@ class Misc(commands.Cog):
                 self._parse_loot_content(response.text)
             )
 
+        if not output:
+            return False
+
         # sort by monsters killed
         sorted_output = sorted(output, key=lambda x: output[x]['killed'], reverse=True)
         total_killed_num = 0
@@ -49,9 +52,15 @@ class Misc(commands.Cog):
                     '**{}** zabitych **{}**'.format(v['killed'], v['org_name'])
                 )
 
-        return 'Twój wkład to:\n' + '\n'.join(top_killed) + '\n\n...oraz **{}** innych potworów!'.format(
-            total_killed_num - top_killed_num
-        )
+        result = 'Twój wkład to:\n' + '\n'.join(top_killed)
+
+        num_killed_other = total_killed_num - top_killed_num
+        if num_killed_other > 0:
+            result += '\n\n...oraz **{}** innych potworów!'.format(
+                num_killed_other
+            )
+
+        return result
 
     def _parse_loot_content(self, content):
         lines = content.split('\r\n')
@@ -220,9 +229,14 @@ class Misc(commands.Cog):
                 await message.channel.send(msg)
                 return
 
+            parsed_loot = self.parse_loot(pastebins=match)
+            if not parsed_loot:
+                await message.channel.send('Error')
+                return
+
             await message.channel.send('Dzięki {0.author.mention}! Dane zostały zaktualizowane.\n\n'.format(
                 message,
-            ) + self.parse_loot(pastebins=match))
+            ) + parsed_loot)
 
     @commands.command()
     async def status(self, ctx):

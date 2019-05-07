@@ -9,7 +9,7 @@ from bs4 import BeautifulSoup
 
 class Wikipedia(commands.Cog):
     def __init__(self, client):
-        self.BASE_URL = 'http://bloodstonewiki.pl/index.php/'
+        self.BASE_URL = 'http://bloodstone.com.pl/index.php/'
         self.monsters_col = DB['monsters']
         self.items_col = DB['items']
         self.WIKI_COMMANDS_ALLOW = WIKI_COMMANDS_ALLOW
@@ -31,7 +31,7 @@ class Wikipedia(commands.Cog):
             return result
 
         if main_content.img:
-            result['img'] = 'http://bloodstonewiki.pl' + main_content.img['src']
+            result['img'] = 'http://bloodstone.com.pl' + main_content.img['src']
 
         tbody = main_content.table.find('tbody')
         for row in tbody.find_all('tr'):
@@ -86,7 +86,7 @@ class Wikipedia(commands.Cog):
             return result
 
         if main_content.img:
-            result['img'] = 'http://bloodstonewiki.pl' + main_content.img['src']
+            result['img'] = 'http://bloodstone.com.pl' + main_content.img['src']
 
         return result
 
@@ -109,10 +109,7 @@ class Wikipedia(commands.Cog):
             try:
                 item_info = monster['drop'][item['org_name']]
             except KeyError:
-                print('ou')
-                from pprint import pprint as pp
-                import pdb
-                pdb.set_trace()
+                pass
             to_sort[monster['org_name']] = {
                 'item_info': item_info,
             }
@@ -228,7 +225,7 @@ class Wikipedia(commands.Cog):
 
         embed.set_author(
             name='Bloodstone Wiki', url=self.BASE_URL,
-            icon_url='http://bloodstonewiki.pl/resources/assets/wikiblood2.png?5dda8'
+            icon_url='http://www.bloodstone.com.pl/images/c/c9/Logo.png'
         )
 
         if 'img' in monster_info:
@@ -344,7 +341,7 @@ class Wikipedia(commands.Cog):
 
         embed.set_author(
             name='Bloodstone Wiki', url=self.BASE_URL,
-            icon_url='http://bloodstonewiki.pl/resources/assets/wikiblood2.png?5dda8'
+            icon_url='http://www.bloodstone.com.pl/images/c/c9/Logo.png'
         )
 
         if 'img' in item_info:
